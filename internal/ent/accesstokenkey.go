@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/accesstokenkey"
-	"github.com/teathedev/fullstack-boilerplate/backend/types"
+	"github.com/teathedev/backend-boilerplate/internal/ent/accesstokenkey"
+	"github.com/teathedev/backend-boilerplate/types"
 )
 
 // AccessTokenKey is the model entity for the AccessTokenKey schema.

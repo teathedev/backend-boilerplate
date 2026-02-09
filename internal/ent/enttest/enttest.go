@@ -5,12 +5,12 @@ package enttest
 import (
 	"context"
 
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent"
+	"github.com/teathedev/backend-boilerplate/internal/ent"
 	// required by schema hooks.
-	_ "github.com/teathedev/fullstack-boilerplate/backend/internal/ent/runtime"
+	_ "github.com/teathedev/backend-boilerplate/internal/ent/runtime"
 
 	"entgo.io/ent/dialect/sql/schema"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/migrate"
+	"github.com/teathedev/backend-boilerplate/internal/ent/migrate"
 )
 
 type (
@@ -71,6 +71,7 @@ func NewClient(t TestingT, opts ...Option) *ent.Client {
 	migrateSchema(t, c, o)
 	return c
 }
+
 func migrateSchema(t TestingT, c *ent.Client, o *options) {
 	tables, err := schema.CopyTables(migrate.Tables)
 	if err != nil {

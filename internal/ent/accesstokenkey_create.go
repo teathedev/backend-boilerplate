@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/accesstokenkey"
-	"github.com/teathedev/fullstack-boilerplate/backend/types"
+	"github.com/teathedev/backend-boilerplate/internal/ent/accesstokenkey"
+	"github.com/teathedev/backend-boilerplate/types"
 )
 
 // AccessTokenKeyCreate is the builder for creating a AccessTokenKey entity.

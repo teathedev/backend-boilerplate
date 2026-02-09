@@ -5,7 +5,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"github.com/teathedev/fullstack-boilerplate/backend/pkg/env"
+	"github.com/teathedev/backend-boilerplate/pkg/env"
 )
 
 var (

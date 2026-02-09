@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/predicate"
-	"github.com/teathedev/fullstack-boilerplate/backend/types"
+	"github.com/teathedev/backend-boilerplate/internal/ent/predicate"
+	"github.com/teathedev/backend-boilerplate/types"
 )
 
 // ID filters vertices based on their ID field.

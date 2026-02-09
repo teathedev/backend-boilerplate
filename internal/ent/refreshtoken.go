@@ -10,8 +10,8 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/refreshtoken"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/user"
+	"github.com/teathedev/backend-boilerplate/internal/ent/refreshtoken"
+	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 )
 
 // RefreshToken is the model entity for the RefreshToken schema.

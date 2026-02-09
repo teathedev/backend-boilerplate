@@ -12,10 +12,10 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/predicate"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/refreshtoken"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/user"
-	"github.com/teathedev/fullstack-boilerplate/backend/types"
+	"github.com/teathedev/backend-boilerplate/internal/ent/predicate"
+	"github.com/teathedev/backend-boilerplate/internal/ent/refreshtoken"
+	"github.com/teathedev/backend-boilerplate/internal/ent/user"
+	"github.com/teathedev/backend-boilerplate/types"
 )
 
 // UserUpdate is the builder for updating User entities.

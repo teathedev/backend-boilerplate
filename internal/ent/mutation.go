@@ -12,11 +12,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/accesstokenkey"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/predicate"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/refreshtoken"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/user"
-	"github.com/teathedev/fullstack-boilerplate/backend/types"
+	"github.com/teathedev/backend-boilerplate/internal/ent/accesstokenkey"
+	"github.com/teathedev/backend-boilerplate/internal/ent/predicate"
+	"github.com/teathedev/backend-boilerplate/internal/ent/refreshtoken"
+	"github.com/teathedev/backend-boilerplate/internal/ent/user"
+	"github.com/teathedev/backend-boilerplate/types"
 )
 
 const (

@@ -10,15 +10,15 @@ import (
 	"reflect"
 
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/migrate"
+	"github.com/teathedev/backend-boilerplate/internal/ent/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/accesstokenkey"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/refreshtoken"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/user"
+	"github.com/teathedev/backend-boilerplate/internal/ent/accesstokenkey"
+	"github.com/teathedev/backend-boilerplate/internal/ent/refreshtoken"
+	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 )
 
 // Client is the client that holds all ent builders.

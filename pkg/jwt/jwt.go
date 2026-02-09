@@ -15,7 +15,7 @@ import (
 	"math/big"
 
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/types"
+	"github.com/teathedev/backend-boilerplate/types"
 )
 
 // EncryptPrivateKey encrypts jwt private keys (or as known JWK) for storing in database safely

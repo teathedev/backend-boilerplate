@@ -6,7 +6,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent"
+	"github.com/teathedev/backend-boilerplate/internal/ent"
 )
 
 // The AccessTokenKeyFunc type is an adapter to allow the use of ordinary

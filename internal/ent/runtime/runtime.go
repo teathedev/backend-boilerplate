@@ -2,7 +2,7 @@
 
 package runtime
 
-// The schema-stitching logic is generated in github.com/teathedev/fullstack-boilerplate/backend/internal/ent/runtime.go
+// The schema-stitching logic is generated in github.com/teathedev/backend-boilerplate/internal/ent/runtime.go
 
 const (
 	Version = "v0.14.5"                                         // Version of ent codegen.

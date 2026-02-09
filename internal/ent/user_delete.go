@@ -8,8 +8,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/predicate"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/user"
+	"github.com/teathedev/backend-boilerplate/internal/ent/predicate"
+	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 )
 
 // UserDelete is the builder for deleting a User entity.

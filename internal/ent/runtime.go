@@ -6,10 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/accesstokenkey"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/refreshtoken"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/schema"
-	"github.com/teathedev/fullstack-boilerplate/backend/internal/ent/user"
+	"github.com/teathedev/backend-boilerplate/internal/ent/accesstokenkey"
+	"github.com/teathedev/backend-boilerplate/internal/ent/refreshtoken"
+	"github.com/teathedev/backend-boilerplate/internal/ent/schema"
+	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 )
 
 // The init function reads all schema descriptors with runtime code
