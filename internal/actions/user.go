@@ -6,8 +6,12 @@ import (
 )
 
 // EntUserToTypesUser maps ent.User (model) to types.User (domain).
-func EntUserToTypesUser(entUser *ent.User) types.User {
-	return types.User{
+func EntUserToTypesUser(entUser *ent.User) *types.User {
+	if entUser == nil {
+		return nil
+	}
+
+	return &types.User{
 		ID:          entUser.ID,
 		PhoneNumber: entUser.PhoneNumber,
 		Email:       entUser.Email,

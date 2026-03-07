@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"sync"
 
+	"github.com/google/uuid"
 	"github.com/teathedev/backend-boilerplate/constants"
 	"github.com/teathedev/backend-boilerplate/internal/db"
 	"github.com/teathedev/backend-boilerplate/internal/ent"
@@ -132,6 +133,19 @@ func GetRandomJWTSigningKey() *types.JWTSigningKey {
 	}
 	i, _ := rand.Int(rand.Reader, big.NewInt(int64(len(activeSigningKeys))))
 	return activeSigningKeys[i.Int64()]
+}
+
+// GetJWTSigningKeyByKeyID returns the JWTSigningKey for the given key ID, or nil if not found.
+func GetJWTSigningKeyByKeyID(keyID uuid.UUID) *types.JWTSigningKey {
+	jwkMu.RLock()
+	defer jwkMu.RUnlock()
+
+	for _, k := range activeSigningKeys {
+		if k.KeyID == keyID {
+			return k
+		}
+	}
+	return nil
 }
 
 // GetJWKSetForDiscovery returns the full JWK set for OIDC discovery (/.well-known/jwks.json).
