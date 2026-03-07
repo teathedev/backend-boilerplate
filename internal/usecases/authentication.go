@@ -173,10 +173,11 @@ func (uc *authenticationUseCase) Login(
 
 	}
 
+	u := actions.EntUserToTypesUser(userItem)
 	return &types.AuthenticationResult{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken.Token,
-		User:         actions.EntUserToTypesUser(userItem),
+		User:         *u,
 	}, nil
 }
 
@@ -312,10 +313,11 @@ func (uc *authenticationUseCase) Register(
 		return nil, errors.New("Authentication.Register", "failed to create refresh token")
 	}
 
+	u := actions.EntUserToTypesUser(userItem)
 	return &types.AuthenticationResult{
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken.Token,
-		User:         actions.EntUserToTypesUser(userItem),
+		User:         *u,
 	}, nil
 }
 

@@ -1,6 +1,62 @@
-version: '3'
+version: "3"
+
+# Env vars used by the app (see pkg/env, internal/db, pkg/logger, apps/api/rest, constants/jwt).
+# Postgres vars are passed to docker-compose by the docker-up task and used to build POSTGRES_DB_URL for the api task.
+vars:
+  APP_NAME: "TEARest"
+  PORT: 4000
+  POSTGRES_USER: "postgres"
+  POSTGRES_PASSWORD: "postgres"
+  POSTGRES_DB: "tearest"
+  JWT_MASTER_KEY: "12345678901234567890123456789012"
+  GO_ENV: "development"
 
 tasks:
-  serve:
+  install_atlas:
+    desc: "Install Atlas CLI"
     cmds:
-      - go run ./cmd/serve
+      - curl -sSf https://atlasgo.sh | sh
+
+  docker-up:
+    desc: Start Postgres 16 container (env vars from Taskfile)
+    env:
+      POSTGRES_USER: "{{.POSTGRES_USER}}"
+      POSTGRES_PASSWORD: "{{.POSTGRES_PASSWORD}}"
+      POSTGRES_DB: "{{.POSTGRES_DB}}"
+    cmds:
+      - docker compose up -d
+
+  api:
+    env:
+      APP_NAME: "{{.APP_NAME}}"
+      PORT: "{{.PORT}}"
+      POSTGRES_DB_URL: "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}"
+      JWT_MASTER_KEY: "{{.JWT_MASTER_KEY}}"
+      GO_ENV: "{{.GO_ENV}}"
+    cmds:
+      - go run ./apps/api
+
+  "migrate:diff":
+    desc: "Generate a new versioned migration (Atlas CLI; needs Docker for dev DB). Usage: task migrate:diff -- name"
+    cmds:
+      - 'atlas migrate diff {{.CLI_ARGS}} --dir "file://internal/ent/migrate/migrations" --to "ent://internal/ent/schema" --dev-url "docker://postgres/16/tearest?search_path=public"'
+
+  "migrate:diff:go":
+    desc: "Generate a new versioned migration (Go script; no Atlas CLI). Postgres must be running. Usage: task migrate:diff:go -- name"
+    env:
+      POSTGRES_USER: "{{.POSTGRES_USER}}"
+      POSTGRES_PASSWORD: "{{.POSTGRES_PASSWORD}}"
+      POSTGRES_DB: "{{.POSTGRES_DB}}"
+      POSTGRES_DB_URL: "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}"
+    cmds:
+      - go run -mod=mod ./internal/ent/migrate/main.go {{.CLI_ARGS}}
+
+  "migrate:apply":
+    desc: "Apply pending versioned migrations to the database"
+    cmds:
+      - 'atlas migrate apply --dir "file://internal/ent/migrate/migrations" --url "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}?sslmode=disable"'
+
+  "migrate:status":
+    desc: "Show migration status for the connected database"
+    cmds:
+      - 'atlas migrate status --dir "file://internal/ent/migrate/migrations" --url "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}?sslmode=disable"'

@@ -17,13 +17,18 @@ var validate = _validator.New()
 // ValidateStruct validates the given struct using struct tags and returns a CustomError with
 // validation field details if validation fails. Uses json tag names in error responses.
 func ValidateStruct[T any](data *T) *errors.CustomError {
-	errParams := []errors.BadInputField{}
 	err := validate.Struct(data)
 	if err == nil {
 		return nil
 	}
-
-	for _, err := range err.(_validator.ValidationErrors) {
+	ves, ok := err.(_validator.ValidationErrors)
+	if !ok {
+		return errors.NewBadInput("Validation", []errors.BadInputField{
+			{Field: "body", Condition: errors.BadInputConditionNotValid, Value: err.Error()},
+		})
+	}
+	errParams := []errors.BadInputField{}
+	for _, err := range ves {
 		element := errors.BadInputField{
 			Field:     err.Field(),
 			Condition: errors.BadInputConditionNotValid,
