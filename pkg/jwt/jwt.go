@@ -55,28 +55,37 @@ func DecryptPrivateKey(encryptedData []byte, masterKey []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, ciphertext, nil)
 }
 
-// GenerateKey is a function that creates JWT keys (or as known JWK)
-func GenerateKey(
-	masterKey []byte,
-) (*types.AccessTokenKey, error) {
-	accessTokenKey := &types.AccessTokenKey{
-		ID:                  uuid.New(),
-		PrivateKey:          nil,
-		PrivateEncryptedKey: nil,
-		PublicPEM:           "",
-		State:               types.AccessTokenKeyStatesActive,
-	}
+// GeneratedKey is the result of key generation - use for persistence and in-memory session.
+// Model: ent.AccessTokenKey (persisted). General purpose: JWK (served), JWTSigningKey (signing).
+type GeneratedKey struct {
+	ID                  uuid.UUID
+	PrivateKey          *rsa.PrivateKey
+	PrivateKeyEncrypted []byte
+	PublicPem           string
+	State               types.AccessTokenKeyStates
+}
 
+// ToSigningKey returns a JWTSigningKey for in-memory JWT signing.
+func (g *GeneratedKey) ToSigningKey() *types.JWTSigningKey {
+	return &types.JWTSigningKey{
+		KeyID:      g.ID,
+		PrivateKey: g.PrivateKey,
+		Algorithm:  types.JWKAlgorithmRS256,
+	}
+}
+
+// GenerateKey creates a new RSA key pair for JWT signing.
+// Returns GeneratedKey: persist to ent, use ToSigningKey() for signing, convert to JWK for discovery.
+func GenerateKey(masterKey []byte) (*GeneratedKey, error) {
 	priv, err := rsa.GenerateKey(rand.Reader, 2048)
 	if err != nil {
 		return nil, err
 	}
 
-	accessTokenKey.PrivateKey = x509.MarshalPKCS1PrivateKey(priv)
-	if encPriv, err := EncryptPrivateKey(accessTokenKey.PrivateKey, masterKey); err != nil {
+	privBytes := x509.MarshalPKCS1PrivateKey(priv)
+	encPriv, err := EncryptPrivateKey(privBytes, masterKey)
+	if err != nil {
 		return nil, err
-	} else {
-		accessTokenKey.PrivateEncryptedKey = encPriv
 	}
 
 	pubBytes, err := x509.MarshalPKIXPublicKey(&priv.PublicKey)
@@ -84,13 +93,15 @@ func GenerateKey(
 		return nil, err
 	}
 
-	accessTokenKey.PublicPEM = string(
-		pem.EncodeToMemory(
-			&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes},
-		),
-	)
+	publicPem := string(pem.EncodeToMemory(&pem.Block{Type: "PUBLIC KEY", Bytes: pubBytes}))
 
-	return accessTokenKey, nil
+	return &GeneratedKey{
+		ID:                  uuid.New(),
+		PrivateKey:          priv,
+		PrivateKeyEncrypted: encPriv,
+		PublicPem:           publicPem,
+		State:               types.AccessTokenKeyStatesActive,
+	}, nil
 }
 
 // ParsePublicPEM parses the string public key into rsa.PublicKey type
@@ -113,23 +124,24 @@ func ParsePublicPEM(pemStr string) (*rsa.PublicKey, error) {
 	return rsaPub, nil
 }
 
-// ConvertToJWK converts AccessTokenKey object into JWK type
-func ConvertToJWK(
-	accessTokenKey *types.AccessTokenKey,
-) (*types.JWK, error) {
-	publicPem, err := ParsePublicPEM(accessTokenKey.PublicPEM)
+// ConvertToJWK converts public PEM + key ID into RFC 7517 JWK.
+// Use with ent.AccessTokenKey (PublicPem, ID) or GeneratedKey (PublicPem, ID).
+func ConvertToJWK(publicPem string, keyID uuid.UUID) (*types.JWK, error) {
+	pub, err := ParsePublicPEM(publicPem)
 	if err != nil {
 		return nil, err
 	}
 
+	// RFC 7518: N and E must be base64url encoded
+	n := base64.RawURLEncoding.EncodeToString(pub.N.Bytes())
+	e := base64.RawURLEncoding.EncodeToString(big.NewInt(int64(pub.E)).Bytes())
+
 	return &types.JWK{
-		KTY:       types.JWKTypesRSA,
-		Use:       types.JWKUseTypesSignature,
-		Algorithm: "RS256",
-		KeyID:     accessTokenKey.ID,
-		N:         base64.RawURLEncoding.EncodeToString(publicPem.N.Bytes()),
-		E: base64.RawStdEncoding.EncodeToString(
-			big.NewInt(int64(publicPem.E)).Bytes(),
-		),
+		KTY:       types.JWKKeyTypeRSA,
+		Use:       types.JWKKeyUseSignature,
+		Algorithm: types.JWKAlgorithmRS256,
+		KeyID:     keyID,
+		N:         n,
+		E:         e,
 	}, nil
 }

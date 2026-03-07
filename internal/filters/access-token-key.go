@@ -11,5 +11,5 @@ func SigningTokens() predicate.AccessTokenKey {
 }
 
 func VerifyTokens() predicate.AccessTokenKey {
-	return accesstokenkey.StateNEQ(types.AccessTokenKeyStatesRedired)
+	return accesstokenkey.StateNEQ(types.AccessTokenKeyStatesRetired)
 }
