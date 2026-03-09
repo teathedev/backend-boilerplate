@@ -7,7 +7,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/teathedev/backend-boilerplate/apps/api/rest"
 	"github.com/teathedev/backend-boilerplate/internal/usecases"
-	"github.com/teathedev/backend-boilerplate/pkg/validation"
+	"github.com/teathedev/pkg/validation"
 	"github.com/teathedev/backend-boilerplate/types"
 )
 

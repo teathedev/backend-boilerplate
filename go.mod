@@ -3,6 +3,7 @@ module github.com/teathedev/backend-boilerplate
 go 1.25.6
 
 require (
+	github.com/teathedev/pkg v0.0.0
 	entgo.io/ent v0.14.5
 	github.com/danielgtaylor/huma/v2 v2.35.0
 	github.com/fatih/color v1.18.0
@@ -11,6 +12,8 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 )
+
+replace github.com/teathedev/pkg => ../pkg
 
 require (
 	ariga.io/atlas v0.32.1-0.20250325101103-175b25e1c1b9 // indirect

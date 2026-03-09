@@ -14,9 +14,9 @@ import (
 	"github.com/teathedev/backend-boilerplate/internal/ent"
 	"github.com/teathedev/backend-boilerplate/internal/ent/accesstokenkey"
 	"github.com/teathedev/backend-boilerplate/internal/filters"
-	"github.com/teathedev/backend-boilerplate/pkg/env"
-	"github.com/teathedev/backend-boilerplate/pkg/jwt"
-	"github.com/teathedev/backend-boilerplate/pkg/logger"
+	"github.com/teathedev/pkg/env"
+	"github.com/teathedev/pkg/jwt"
+	"github.com/teathedev/pkg/logger"
 	"github.com/teathedev/backend-boilerplate/types"
 )
 
@@ -40,7 +40,18 @@ func init() {
 
 // EntAccessTokenKeyToJWK converts ent.AccessTokenKey (model) to types.JWK (general purpose).
 func EntAccessTokenKeyToJWK(model *ent.AccessTokenKey) (*types.JWK, error) {
-	return jwt.ConvertToJWK(model.PublicPem, model.ID)
+	j, err := jwt.ConvertToJWK(model.PublicPem, model.ID)
+	if err != nil {
+		return nil, err
+	}
+	return &types.JWK{
+		KTY:       types.JWKKeyType(j.KTY),
+		Use:       types.JWKKeyUse(j.Use),
+		Algorithm: types.JWKAlgorithm(j.Algorithm),
+		KeyID:     j.KeyID,
+		N:         j.N,
+		E:         j.E,
+	}, nil
 }
 
 // getJWTKeyEncryptionKey returns the JWT key encryption key from env (base64-encoded, 32 bytes for AES-256-GCM).

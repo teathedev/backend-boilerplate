@@ -11,7 +11,7 @@ import (
 	_ "github.com/teathedev/backend-boilerplate/apps/api/controller"
 	"github.com/teathedev/backend-boilerplate/apps/api/rest"
 	"github.com/teathedev/backend-boilerplate/internal/actions"
-	"github.com/teathedev/backend-boilerplate/pkg/env"
+	"github.com/teathedev/pkg/env"
 )
 
 func main() {

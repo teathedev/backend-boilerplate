@@ -9,9 +9,9 @@ import (
 	"github.com/teathedev/backend-boilerplate/internal/db"
 	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 	"github.com/teathedev/backend-boilerplate/internal/filters"
-	"github.com/teathedev/backend-boilerplate/pkg/errors"
-	"github.com/teathedev/backend-boilerplate/pkg/logger"
-	"github.com/teathedev/backend-boilerplate/pkg/validation"
+	"github.com/teathedev/pkg/errors"
+	"github.com/teathedev/pkg/logger"
+	"github.com/teathedev/pkg/validation"
 	"github.com/teathedev/backend-boilerplate/types"
 )
 

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/teathedev/backend-boilerplate/internal/ent"
-	"github.com/teathedev/backend-boilerplate/pkg/env"
+	"github.com/teathedev/pkg/env"
 )
 
 var Client *ent.Client

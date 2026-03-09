@@ -7,7 +7,7 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 	"github.com/teathedev/backend-boilerplate/apps/api/rest"
-	"github.com/teathedev/backend-boilerplate/pkg/validation"
+	"github.com/teathedev/pkg/validation"
 )
 
 // CreateUserInput is the request body for POST /users.

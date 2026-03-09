@@ -11,9 +11,8 @@ import (
 	"github.com/danielgtaylor/huma/v2"
 	"github.com/danielgtaylor/huma/v2/adapters/humachi"
 	"github.com/go-chi/chi/v5"
-	"github.com/teathedev/backend-boilerplate/pkg/env"
-	"github.com/teathedev/backend-boilerplate/pkg/errors"
-	pkgrest "github.com/teathedev/backend-boilerplate/pkg/rest"
+	"github.com/teathedev/pkg/env"
+	"github.com/teathedev/pkg/errors"
 )
 
 var (
@@ -64,7 +63,7 @@ func ErrorResponses(badInputSchema, simpleSchema *huma.Schema) map[string]*huma.
 }
 
 func init() {
-	pkgrest.SetupErrorFactory()
+	SetupErrorFactory()
 	huma.DefaultArrayNullable = false
 
 	Router = chi.NewMux()

@@ -1,6 +1,6 @@
 package usecases
 
-import "github.com/teathedev/backend-boilerplate/pkg/logger"
+import "github.com/teathedev/pkg/logger"
 
 type userUseCase struct {
 	log logger.Logger
