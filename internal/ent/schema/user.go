@@ -22,7 +22,7 @@ func (User) Fields() []ent.Field {
 			Default(uuid.New).
 			Immutable(),
 		field.String("phone_number").
-			MaxLen(13).
+			MaxLen(14).
 			Unique().
 			NotEmpty(),
 		field.String("email").
@@ -44,7 +44,7 @@ func (User) Fields() []ent.Field {
 			MaxLen(255).
 			NotEmpty(),
 		field.String("password_salt").
-			MaxLen(32).
+			MaxLen(36).
 			Sensitive().
 			NotEmpty(),
 		field.String("password_hash").

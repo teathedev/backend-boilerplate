@@ -7,12 +7,13 @@ import (
 	"github.com/teathedev/backend-boilerplate/constants"
 	"github.com/teathedev/backend-boilerplate/internal/actions"
 	"github.com/teathedev/backend-boilerplate/internal/db"
+	"github.com/teathedev/backend-boilerplate/internal/ent"
 	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 	"github.com/teathedev/backend-boilerplate/internal/filters"
+	"github.com/teathedev/backend-boilerplate/types"
 	"github.com/teathedev/pkg/errors"
 	"github.com/teathedev/pkg/logger"
 	"github.com/teathedev/pkg/validation"
-	"github.com/teathedev/backend-boilerplate/types"
 )
 
 type authenticationUseCase struct {
@@ -44,6 +45,13 @@ func (uc *authenticationUseCase) Login(
 	}
 
 	if err := validation.ValidateStruct(request); err != nil {
+		uc.log.Error(
+			"Failed to validate request",
+			logger.LogParams{
+				"RequestID": ctx.Value(constants.RequestID),
+				"Error":     err,
+			},
+		)
 		return nil, err
 	}
 
@@ -57,7 +65,7 @@ func (uc *authenticationUseCase) Login(
 		).
 		First(ctx)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if ent.IsNotFound(err) {
 			uc.log.Trace(
 				"User not found by identifier!",
 				logger.LogParams{
@@ -145,10 +153,12 @@ func (uc *authenticationUseCase) Login(
 		)
 	}
 
-	accessToken, err := actions.CreateAccessToken(&types.AccessTokenClaims{
-		UserID:   userItem.ID,
-		UserRole: userItem.Role,
-	})
+	accessToken, err := actions.CreateAccessToken(
+		&types.AccessTokenClaims{
+			UserID:   userItem.ID,
+			UserRole: userItem.Role,
+		},
+	)
 	if err != nil {
 		uc.log.Error(
 			"Failed to create access token",
@@ -198,7 +208,16 @@ func (uc *authenticationUseCase) Register(
 	}
 
 	if err := validation.ValidateStruct(request); err != nil {
-		return nil, err
+		return nil, errors.NewBadInput(
+			"Authentication.Register",
+			[]errors.BadInputField{
+				{
+					Field:     "body",
+					Condition: errors.BadInputConditionNotValid,
+					Value:     err.Error(),
+				},
+			},
+		)
 	}
 
 	existingUser, err := db.Client.User.
@@ -212,7 +231,7 @@ func (uc *authenticationUseCase) Register(
 		).
 		First(ctx)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if ent.IsNotFound(err) {
 			uc.log.Trace(
 				"User not found by identifier!",
 				logger.LogParams{
@@ -288,6 +307,7 @@ func (uc *authenticationUseCase) Register(
 		SetLastName(request.LastName).
 		SetPasswordSalt(passwordSalt).
 		SetPasswordHash(passwordHash).
+		SetState(types.UserStatesActive).
 		Save(ctx)
 	if err != nil {
 		uc.log.Error(

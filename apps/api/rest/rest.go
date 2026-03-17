@@ -4,8 +4,6 @@
 package rest
 
 import (
-	"encoding/json"
-	"net/http"
 	"reflect"
 
 	"github.com/danielgtaylor/huma/v2"
@@ -16,43 +14,32 @@ import (
 )
 
 var (
-	Router  *chi.Mux
-	Version = "1.0.0"
+	Router      *chi.Mux
+	Version     = "1.0.0"
+	APIInstance huma.API
 )
 
-// Server holds one API surface: its own router, Huma API, and OpenAPI spec.
-type Server struct {
-	Name     string
-	BasePath string
-	Router   chi.Router
-	API      huma.API
-}
-
 var (
-	IAMServer  *Server
-	TodoServer *Server
-	XServer    *Server
+	IAMGroup       *huma.Group
+	ProtectedGroup *huma.Group
 )
 
 // API returns the default API (IAM) for backward compatibility.
 func API() huma.API {
-	if IAMServer != nil {
-		return IAMServer.API
-	}
-	return nil
+	return APIInstance
 }
 
-// IAMBadInputSchema is the 400 (validation) error schema: message + error array. Use only for 400.
-var IAMBadInputSchema *huma.Schema
+// BadInputSchema is the 400 (validation) error schema: message + error array. Use only for 400.
+var BadInputSchema *huma.Schema
 
-// IAMErrorSchema is the generic error schema for 401/403/404/500: message only.
-var IAMErrorSchema *huma.Schema
+// ErrorSchema is the generic error schema for 401/403/404/500: message only.
+var ErrorSchema *huma.Schema
 
 // ErrorResponses returns a Responses map: 400 uses bad-input schema (message + error array),
 // 401/403/404/500 use simple message-only schema.
-func ErrorResponses(badInputSchema, simpleSchema *huma.Schema) map[string]*huma.Response {
-	badContent := map[string]*huma.MediaType{"application/json": {Schema: badInputSchema}}
-	simpleContent := map[string]*huma.MediaType{"application/json": {Schema: simpleSchema}}
+func ErrorResponses() map[string]*huma.Response {
+	badContent := map[string]*huma.MediaType{"application/json": {Schema: BadInputSchema}}
+	simpleContent := map[string]*huma.MediaType{"application/json": {Schema: ErrorSchema}}
 	return map[string]*huma.Response{
 		"400": {Description: "Bad request / validation failed", Content: badContent},
 		"401": {Description: "Unauthorized", Content: simpleContent},
@@ -69,98 +56,23 @@ func init() {
 	Router = chi.NewMux()
 	appName := env.GetString("APP_NAME", "TEARest")
 
-	// --- IAM Server ---
-	iamCfg := huma.DefaultConfig("IAM Server", Version)
-	iamCfg.DocsPath = ""
-	iamCfg.Servers = []*huma.Server{{URL: "/auth", Description: "IAM (authentication)"}}
-	iamRouter := chi.NewRouter()
-	IAMServer = &Server{
-		Name:     "IAM Server",
-		BasePath: "/auth",
-		Router:   iamRouter,
-		API:      humachi.New(iamRouter, iamCfg),
-	}
-	IAMBadInputSchema = huma.SchemaFromType(IAMServer.API.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorResponse{}))
-	IAMErrorSchema = huma.SchemaFromType(IAMServer.API.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorSimple{}))
-	serveOpenAPI(iamRouter, IAMServer)
-	Router.Mount("/auth", iamRouter)
+	// Single API with groups for IAM and Protected. Huma validation is disabled for
+	// auth payloads; we only use it for mapping & docs there.
+	cfg := huma.DefaultConfig(appName, Version)
+	cfg.DocsPath = "/docs"
+	cfg.DocsRenderer = huma.DocsRendererScalar
+	APIInstance = humachi.New(Router, cfg)
 
-	// --- Todo Server ---
-	todoCfg := huma.DefaultConfig("Todo Server", Version)
-	todoCfg.DocsPath = ""
-	todoCfg.Servers = []*huma.Server{{URL: "/todos", Description: "Todo tasks"}}
-	todoRouter := chi.NewRouter()
-	TodoServer = &Server{
-		Name:     "Todo Server",
-		BasePath: "/todos",
-		Router:   todoRouter,
-		API:      humachi.New(todoRouter, todoCfg),
-	}
-	_ = huma.SchemaFromType(TodoServer.API.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorResponse{}))
-	_ = huma.SchemaFromType(TodoServer.API.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorSimple{}))
-	serveOpenAPI(todoRouter, TodoServer)
-	Router.Mount("/todos", todoRouter)
-
-	// --- X Server ---
-	xCfg := huma.DefaultConfig("X Server", Version)
-	xCfg.DocsPath = ""
-	xCfg.Servers = []*huma.Server{{URL: "/x", Description: "X tasks"}}
-	xRouter := chi.NewRouter()
-	XServer = &Server{
-		Name:     "X Server",
-		BasePath: "/x",
-		Router:   xRouter,
-		API:      humachi.New(xRouter, xCfg),
-	}
-	_ = huma.SchemaFromType(XServer.API.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorResponse{}))
-	_ = huma.SchemaFromType(XServer.API.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorSimple{}))
-	serveOpenAPI(xRouter, XServer)
-	Router.Mount("/x", xRouter)
-
-	Router.Get("/docs", serveSwaggerUI(appName))
-}
-
-func serveOpenAPI(sub chi.Router, s *Server) {
-	spec := s.API.OpenAPI()
-	sub.Get("/openapi.json", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-		_ = json.NewEncoder(w).Encode(spec)
+	IAMGroup = huma.NewGroup(APIInstance, "/auth")
+	IAMGroup.UseSimpleModifier(func(op *huma.Operation) {
+		op.Tags = append(op.Tags, "IAM")
 	})
-}
 
-func serveSwaggerUI(title string) http.HandlerFunc {
-	html := `<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8"/>
-  <title>` + title + ` — API</title>
-  <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css">
-</head>
-<body>
-  <div id="swagger-ui"></div>
-  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
-  <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-standalone-preset.js"></script>
-  <script>
-    window.onload = function() {
-      window.ui = SwaggerUIBundle({
-        urls: [
-          { url: "/auth/openapi.json", name: "IAM Server" },
-          { url: "/todos/openapi.json", name: "Todo Server" },
-          { url: "/x/openapi.json", name: "X Server" }
-        ],
-        dom_id: "#swagger-ui",
-        presets: [
-          SwaggerUIBundle.presets.apis,
-          SwaggerUIStandalonePreset
-        ],
-        layout: "StandaloneLayout"
-      });
-    };
-  </script>
-</body>
-</html>`
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		_, _ = w.Write([]byte(html))
-	}
+	ProtectedGroup = huma.NewGroup(APIInstance, "/protected")
+	ProtectedGroup.UseSimpleModifier(func(op *huma.Operation) {
+		op.Tags = append(op.Tags, "Protected")
+	})
+
+	BadInputSchema = huma.SchemaFromType(APIInstance.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorResponse{}))
+	ErrorSchema = huma.SchemaFromType(APIInstance.OpenAPI().Components.Schemas, reflect.TypeOf(errors.APIErrorSimple{}))
 }

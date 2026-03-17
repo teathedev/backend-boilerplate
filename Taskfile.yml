@@ -4,7 +4,7 @@ version: "3"
 # Postgres vars are passed to docker-compose by the docker-up task and used to build POSTGRES_DB_URL for the api task.
 vars:
   APP_NAME: "TEARest"
-  PORT: 4000
+  PORT: 5000
   POSTGRES_USER: "postgres"
   POSTGRES_PASSWORD: "postgres"
   POSTGRES_DB: "tearest"
@@ -12,12 +12,38 @@ vars:
   GO_ENV: "development"
 
 tasks:
-  install_atlas:
+  check_deps:
+    desc: "Check dependencies (atlas and reflex) and install if missing"
+    cmds:
+      # Check and install Atlas if missing
+      - |
+        if ! command -v atlas &> /dev/null; then
+          echo "Atlas not found. Installing..."
+          curl -sSf https://atlasgo.sh | sh
+        else
+          echo "✓ Atlas already installed"
+        fi
+      
+      # Check and install Reflex if missing  
+      - |
+        if ! command -v reflex &> /dev/null; then
+          echo "Reflex not found. Installing..."
+          go install github.com/cespare/reflex@latest
+        else
+          echo "✓ Reflex already installed"
+        fi
+
+  "install:atlas":
     desc: "Install Atlas CLI"
     cmds:
       - curl -sSf https://atlasgo.sh | sh
 
-  docker-up:
+  "install:reflex":
+    desc: "Install reflex"
+    cmds:
+      - go install github.com/cespare/reflex@latest
+
+  "local:docker:up":
     desc: Start Postgres 16 container (env vars from Taskfile)
     env:
       POSTGRES_USER: "{{.POSTGRES_USER}}"
@@ -26,15 +52,16 @@ tasks:
     cmds:
       - docker compose up -d
 
-  api:
+  "local:api:watch":
     env:
       APP_NAME: "{{.APP_NAME}}"
       PORT: "{{.PORT}}"
-      POSTGRES_DB_URL: "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}"
+      POSTGRES_DB_URL: "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}?sslmode=disable"
       JWT_MASTER_KEY: "{{.JWT_MASTER_KEY}}"
       GO_ENV: "{{.GO_ENV}}"
     cmds:
-      - go run ./apps/api
+      - task: check_deps
+      - reflex -r '\.go$$' -R '(^vendor/.*)' -s -- sh -c 'clear && go run ./apps/api'
 
   "migrate:diff":
     desc: "Generate a new versioned migration (Atlas CLI; needs Docker for dev DB). Usage: task migrate:diff -- name"
@@ -60,3 +87,9 @@ tasks:
     desc: "Show migration status for the connected database"
     cmds:
       - 'atlas migrate status --dir "file://internal/ent/migrate/migrations" --url "postgres://{{.POSTGRES_USER}}:{{.POSTGRES_PASSWORD}}@localhost:5432/{{.POSTGRES_DB}}?sslmode=disable"'
+
+  "ent:generate":
+    desc: "Generate ent schemas"
+    dir: "./internal"
+    cmds:
+      - go generate ./ent

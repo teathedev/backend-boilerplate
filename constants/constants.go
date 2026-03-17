@@ -2,3 +2,4 @@
 package constants
 
 const RequestID = "REQUEST_ID"
+const User = "USER"

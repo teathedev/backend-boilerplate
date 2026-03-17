@@ -49,14 +49,14 @@ var (
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
-		{Name: "phone_number", Type: field.TypeString, Unique: true, Size: 13},
+		{Name: "phone_number", Type: field.TypeString, Unique: true, Size: 14},
 		{Name: "email", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "username", Type: field.TypeString, Unique: true, Size: 255},
 		{Name: "role", Type: field.TypeInt16},
 		{Name: "state", Type: field.TypeInt16},
 		{Name: "first_name", Type: field.TypeString, Size: 255},
 		{Name: "last_name", Type: field.TypeString, Size: 255},
-		{Name: "password_salt", Type: field.TypeString, Size: 32},
+		{Name: "password_salt", Type: field.TypeString, Size: 36},
 		{Name: "password_hash", Type: field.TypeString, Size: 255},
 		{Name: "created_at", Type: field.TypeTime},
 		{Name: "updated_at", Type: field.TypeTime},
