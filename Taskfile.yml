@@ -1,15 +1,17 @@
 version: "3"
 
 # Env vars used by the app (see pkg/env, internal/db, pkg/logger, apps/api/rest, constants/jwt).
-# Postgres vars are passed to docker-compose by the docker-up task and used to build POSTGRES_DB_URL for the api task.
+# If .env exists, its values override these defaults. Create .env from .env.example.
+dotenv: [".env"]
+
 vars:
-  APP_NAME: "TEARest"
-  PORT: 5000
-  POSTGRES_USER: "postgres"
-  POSTGRES_PASSWORD: "postgres"
-  POSTGRES_DB: "tearest"
-  JWT_MASTER_KEY: "12345678901234567890123456789012"
-  GO_ENV: "development"
+  APP_NAME: '{{.APP_NAME | default "TEARest"}}'
+  PORT: '{{.PORT | default "5000"}}'
+  POSTGRES_USER: '{{.POSTGRES_USER | default "postgres"}}'
+  POSTGRES_PASSWORD: '{{.POSTGRES_PASSWORD | default "postgres"}}'
+  POSTGRES_DB: '{{.POSTGRES_DB | default "tearest"}}'
+  JWT_MASTER_KEY: '{{.JWT_MASTER_KEY | default "12345678901234567890123456789012"}}'
+  GO_ENV: '{{.GO_ENV | default "development"}}'
 
 tasks:
   check_deps:

@@ -46,6 +46,8 @@ A Go REST API boilerplate with JWT authentication, PostgreSQL, Ent ORM, and Open
 
 ## Environment Variables
 
+Create a `.env` file (copy from `.env.example`) to override defaults. If `.env` is present, its values take precedence over Taskfile defaults.
+
 | Variable            | Default     | Description                 |
 | ------------------- | ----------- | --------------------------- |
 | `APP_NAME`          | TEARest     | Application name in OpenAPI |
