@@ -65,6 +65,11 @@ tasks:
       - task: check_deps
       - reflex -r '\.go$$' -R '(^vendor/.*)' -s -- sh -c 'clear && go run ./apps/api'
 
+  "migrate:hash":
+    desc: "Generate a hash for the current migration"
+    cmds:
+      - atlas migrate hash --dir "file://internal/ent/migrate/migrations"
+
   "migrate:diff":
     desc: "Generate a new versioned migration (Atlas CLI; needs Docker for dev DB). Usage: task migrate:diff -- name"
     cmds:
