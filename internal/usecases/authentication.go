@@ -8,6 +8,7 @@ import (
 	"github.com/teathedev/backend-boilerplate/internal/actions"
 	"github.com/teathedev/backend-boilerplate/internal/db"
 	"github.com/teathedev/backend-boilerplate/internal/ent"
+	"github.com/teathedev/backend-boilerplate/internal/ent/refreshtoken"
 	"github.com/teathedev/backend-boilerplate/internal/ent/user"
 	"github.com/teathedev/backend-boilerplate/internal/filters"
 	"github.com/teathedev/backend-boilerplate/types"
@@ -379,5 +380,101 @@ func (uc *authenticationUseCase) GetUserByToken(
 		State:       userItem.State,
 		FirstName:   userItem.FirstName,
 		LastName:    userItem.LastName,
+	}, nil
+}
+
+func (uc *authenticationUseCase) Refresh(
+	ctx context.Context,
+	request *types.RefreshTokenRequest,
+) (*types.AuthenticationResult, error) {
+	if request == nil {
+		return nil, errors.NewBadInput(
+			"Authentication.Refresh",
+			[]errors.BadInputField{
+				{Field: "body", Condition: "not_valid", Value: ""},
+			})
+	}
+	if err := validation.ValidateStruct(request); err != nil {
+		return nil, err
+	}
+
+	rt, err := db.Client.RefreshToken.
+		Query().
+		Where(
+			refreshtoken.And(
+				refreshtoken.TokenEQ(request.RefreshToken),
+				filters.ActiveRefreshToken(),
+			),
+		).
+		WithUser().
+		First(ctx)
+	if err != nil {
+		if ent.IsNotFound(err) {
+			uc.log.Trace(
+				"Refresh token not found or already claimed",
+				logger.LogParams{
+					"RequestID": ctx.Value(constants.RequestID),
+				},
+			)
+		}
+		return nil, errors.NewBadInput(
+			"Authentication.Refresh",
+			[]errors.BadInputField{
+				{
+					Field:     "refreshToken",
+					Condition: "not_valid",
+					Value:     "",
+				},
+			})
+	}
+
+	userItem, err := rt.Edges.UserOrErr()
+	if err != nil || userItem == nil {
+		return nil, errors.New("Authentication.Refresh", "failed to load user for refresh token")
+	}
+
+	if userItem.State != types.UserStatesActive && userItem.State != types.UserStatesInvited {
+		return nil, errors.NewBadInput(
+			"Authentication.Refresh",
+			[]errors.BadInputField{
+				{
+					Field:     "refreshToken",
+					Condition: "not_valid",
+					Value:     "",
+				},
+			})
+	}
+
+	// Mark old token as claimed (one-time use)
+	_, err = db.Client.RefreshToken.UpdateOne(rt).SetIsClaimed(true).Save(ctx)
+	if err != nil {
+		uc.log.Error(
+			"Failed to claim refresh token",
+			logger.LogParams{
+				"RequestID": ctx.Value(constants.RequestID),
+				"Error":     err,
+			},
+		)
+		return nil, errors.New("Authentication.Refresh", "failed to process refresh token")
+	}
+
+	accessToken, err := actions.CreateAccessToken(&types.AccessTokenClaims{
+		UserID:   userItem.ID,
+		UserRole: userItem.Role,
+	})
+	if err != nil {
+		return nil, errors.New("Authentication.Refresh", "failed to create access token")
+	}
+
+	newRefreshToken, err := actions.CreateRefreshToken(ctx, userItem)
+	if err != nil {
+		return nil, errors.New("Authentication.Refresh", "failed to create refresh token")
+	}
+
+	u := actions.EntUserToTypesUser(userItem)
+	return &types.AuthenticationResult{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken.Token,
+		User:         *u,
 	}, nil
 }

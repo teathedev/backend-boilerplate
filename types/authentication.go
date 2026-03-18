@@ -20,3 +20,20 @@ type Register struct {
 	LastName    string    `json:"lastName" validate:"required,min=2,max=255" doc:"Last name"`
 	Password    string    `json:"password" validate:"required,password" doc:"Password"`
 }
+
+type RefreshTokenRequest struct {
+	RefreshToken string `json:"refreshToken" validate:"required" doc:"Refresh token from login/register"`
+}
+
+type UpdateMe struct {
+	FirstName   *string `json:"firstName,omitempty" validate:"required_without_all=LastName Email Username PhoneNumber,omitempty,min=3,max=255" doc:"First name"`
+	LastName    *string `json:"lastName,omitempty" validate:"omitempty,min=2,max=255" doc:"Last name"`
+	Email       *string `json:"email,omitempty" validate:"omitempty,email" doc:"Email address"`
+	Username    *string `json:"username,omitempty" validate:"omitempty,username" doc:"Username"`
+	PhoneNumber *string `json:"phoneNumber,omitempty" validate:"omitempty,e164" doc:"Phone number"`
+}
+
+type UpdatePassword struct {
+	CurrentPassword string `json:"currentPassword" validate:"required" doc:"Current password"`
+	NewPassword     string `json:"newPassword" validate:"required,password" doc:"New password"`
+}

@@ -23,8 +23,8 @@ tasks:
         else
           echo "✓ Atlas already installed"
         fi
-      
-      # Check and install Reflex if missing  
+
+      # Check and install Reflex if missing
       - |
         if ! command -v reflex &> /dev/null; then
           echo "Reflex not found. Installing..."
@@ -93,3 +93,21 @@ tasks:
     dir: "./internal"
     cmds:
       - go generate ./ent
+
+  "openapi:download":
+    desc: "Download the merged OpenAPI spec (API must be running: task local:api:watch)"
+    cmds:
+      - mkdir -p ./dist
+      - curl -sf -o ./dist/openapi.json "http://localhost:{{.PORT}}/openapi.json"
+
+  "openapi:generate-clients":
+    desc: "Generate TypeScript client from the OpenAPI spec (run openapi:download first)"
+    cmds:
+      - mkdir -p ./dist/clients
+      - npx @openapitools/openapi-generator-cli generate -i ./dist/openapi.json -g typescript-axios -o ./dist/clients --additional-properties=withInterfaces=true,useSingleRequestParameter=false
+
+  "openapi":
+    desc: "Download OpenAPI spec and generate clients (API must be running)"
+    cmds:
+      - task: openapi:download
+      - task: openapi:generate-clients

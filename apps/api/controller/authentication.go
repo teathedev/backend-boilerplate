@@ -22,6 +22,16 @@ type LoginOutput struct {
 	Body types.AuthenticationResult
 }
 
+// RefreshInput is the request body for POST /auth/refresh.
+type RefreshInput struct {
+	Body types.RefreshTokenRequest
+}
+
+// RefreshOutput is the response for POST /auth/refresh.
+type RefreshOutput struct {
+	Body types.AuthenticationResult
+}
+
 // RegisterInput is the request body for POST /auth/register.
 type RegisterInput struct {
 	Body types.Register
@@ -46,6 +56,20 @@ func init() {
 			return nil, err
 		}
 		return &LoginOutput{Body: *result}, nil
+	})
+
+	huma.Register(rest.IAMGroup, huma.Operation{
+		OperationID: "refresh",
+		Method:      http.MethodPost,
+		Path:        "/refresh",
+		Summary:     "Refresh access token using refresh token",
+		Responses:   rest.ErrorResponses(),
+	}, func(ctx context.Context, in *RefreshInput) (*RefreshOutput, error) {
+		result, err := usecases.Authentication.Refresh(ctx, &in.Body)
+		if err != nil {
+			return nil, err
+		}
+		return &RefreshOutput{Body: *result}, nil
 	})
 
 	huma.Register(rest.IAMGroup, huma.Operation{
